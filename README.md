@@ -30,6 +30,20 @@
 A small and basic countdown timer that we use at the university to start classes or mark exam times. Written in python using Tkinter and CustomTkinter.
 #### Developed by: _Facundo Falcone_ <CaidevOficial>
 
+<table>
+    <th><center>Beginning</center><th>
+    <tr>
+        <td>
+            <img alt="Image Sample Init" src="./assets//img//init.png" height="300px" />
+        </td>
+    </tr>
+    <th><center>End</center><th>
+    <tr>
+        <td>
+            <img alt="Image Sample End" src="./assets//img//end.png" height="300px" />
+        </td>
+    </tr>
+</table></br>
 ### Important: You`ll need Python 3.10.X
 
 ### How to use:
