@@ -22,6 +22,7 @@ import customtkinter
 import warnings
 import winsound
 import re
+from PIL import Image, ImageTk
 
 
 class CountdownApp(customtkinter.CTk):
@@ -46,9 +47,15 @@ class CountdownApp(customtkinter.CTk):
 
         self.__configure()
 
+        self.__frame_player = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent", bg_color = 'transparent')
+        self.__frame_player.grid(row = 3, column = 1, padx = 20, pady = 5, columnspan = 2, rowspan = 3, sticky="nswe")
+
         self.__lbl_time = tk.Label(master=self.__frame_main, relief=tk.RAISED, cursor='dot', font=("Arial", 50, "bold"), bg='black', fg='cyan', justify='left')
         self.__lbl_time.grid(row=2, column=0, columnspan=1, sticky='we')
-        self.__lbl_time.place(x=140, y=600)
+        self.__lbl_time.place(x=50, y=420)
+
+        self.__lbl_song_name = customtkinter.CTkLabel(master=self.__frame_player, text=f"TEST", font=("Arial", 20, "bold"))
+        self.__lbl_song_name.grid(row=3, column=2, columnspan=2, padx=20, pady=10)
 
         self.__calculate_time_left()
 
@@ -86,7 +93,8 @@ class CountdownApp(customtkinter.CTk):
             self.__initial_time = datetime.datetime.strptime(f'{actual_date} {complete_hour}:00', '%Y-%m-%d %H:%M:%S')
             alert('Datetime', f'Datetime configured: {self.__initial_time}')
             return True
-        except Exception:
+        except Exception as e:
+            print(e.with_traceback(None))
             return False
 
     def __configure_bg_image(self) -> bool:
@@ -96,13 +104,16 @@ class CountdownApp(customtkinter.CTk):
         """
         try:
             if question('Initial or End?', 'Would you like an initial image? click NO for end image'):
-                self.__image = tk.PhotoImage(file='./assets/img/background_init.png')
+                self.__image = Image.open('./assets/img/background_init.png')
             else:
-                self.__image = tk.PhotoImage(file='./assets/img/background_end.png')
+                self.__image = Image.open('./assets/img/background_end.png')
+            self.__image = ImageTk.PhotoImage(self.__image.resize((1191, 671)))
+            print('rezised')
             self.__top_banner = customtkinter.CTkLabel(master = self.__frame_main, image = self.__image, text='')
             self.__top_banner.grid_configure(row = 0, column = 0, padx = 20, pady = 5, columnspan = 2, rowspan = 3, sticky = 'we')
             return True
-        except Exception:
+        except Exception as e:
+            print(e.with_traceback(None))
             return False
 
     def __play_loop_sound(self):
