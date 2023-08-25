@@ -14,14 +14,19 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import datetime
+import re
 import tkinter as tk
-from tkinter.messagebox import showinfo as alert
-from tkinter.messagebox import askyesno as question
-from tkinter.simpledialog import askstring as prompt
-import customtkinter
 import warnings
 import winsound
-import re
+from tkinter import Button, filedialog
+from tkinter.messagebox import askyesno as question
+from tkinter.messagebox import showinfo as alert
+from tkinter.simpledialog import askstring as prompt
+
+import customtkinter
+import mutagen
+from PIL import Image, ImageTk
+from pygame import mixer
 
 
 class CountdownApp(customtkinter.CTk):
@@ -36,21 +41,75 @@ class CountdownApp(customtkinter.CTk):
         window, creating the main frame, displaying an image banner, and playing background music.
         """
         super().__init__()
+        mixer.init(frequency=44100)
 
         self.title(f"UTN FRA - countdown")
         self.minsize(320, 250)
-        self.BACKGROUND_MUSIC = './assets/sound/bg_music_wav.wav'
+        self.BACKGROUND_MUSIC = '.'
+        self.__actual_song = None
+        self.__actual_song_name = None
+        self.__actual_position = 0
+        self.__is_playing = False
+        self.__is_paused = False
+        self.__is_stopped = False
+        self.__time_done = False
+        self.__alert_show = False
+        self.__songs = list()
         
-        self.__frame_main = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
-        self.__frame_main.grid(row = 0, column = 0, padx = 20, pady = 5, columnspan = 2, rowspan = 3, sticky="nswe")
-
-        self.__configure()
-
-        self.__lbl_time = tk.Label(master=self.__frame_main, relief=tk.RAISED, cursor='dot', font=("Arial", 50, "bold"), bg='black', fg='cyan', justify='left')
-        self.__lbl_time.grid(row=2, column=0, columnspan=1, sticky='we')
-        self.__lbl_time.place(x=140, y=600)
+        self.__configure_frames()
+        self.__configure_date_bg_img()
+        self.__configure_labels()
+        self.__configure_buttons()
+        self.__configure_sound()
+        self.__lbl_update_song = ''
 
         self.__calculate_time_left()
+
+    #! #### CONFIGURATIONS #### !#
+    def __configure_frames(self):
+        """
+        The function configures two frames with specific properties and grid positions.
+        """
+        self.__frame_main = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent")
+        self.__frame_main.grid(row = 0, column = 0, padx = 10, pady = 5, columnspan = 1, rowspan = 1, sticky="nswe")
+
+        self.__frame_player = customtkinter.CTkFrame(self, corner_radius=0, fg_color="transparent", bg_color = 'transparent', width=600, height=50)
+        self.__frame_player.grid(row = 1, column = 0, padx = 20, pady = 5, columnspan = 1, rowspan = 1, sticky="nswe")
+
+    def __configure_buttons(self):
+        """
+        The function `__configure_buttons` creates and configures buttons for a music player interface.
+        """
+        self.__configure_icons()
+        self.__btn_open_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_open_logo, text='', command=self.__open_songs)
+        self.__btn_open_song.grid(row=0, column = 0, padx=10, pady=5, columnspan=1, sticky="ew")
+
+        self.__btn_prev_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_previous_logo, text='', command=self.__prev_song)
+        self.__btn_prev_song.grid(row=0, column = 1, padx=10, pady=5, columnspan=1, sticky="ew")
+
+        self.__btn_play_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_play_logo, text='', command=self.__init_music_player)
+        self.__btn_play_song.grid(row=0, column = 2, padx=10, pady=5, columnspan=1, sticky="ew")
+
+        self.__btn_pause_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_pause_logo, text='', command=self.__pause_song)
+        self.__btn_pause_song.grid(row=0, column = 3, padx=10, pady=5, columnspan=1, sticky="ew")
+
+        self.__btn_stop_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_stop_logo, text='', command=self.__stop_song)
+        self.__btn_stop_song.grid(row=0, column = 4, padx=10, pady=5, columnspan=1, sticky="ew")
+
+        self.__btn_next_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_next_logo, text='', command=self.__next_song)
+        self.__btn_next_song.grid(row=0, column = 5, padx=10, pady=5, columnspan=1, sticky="ew")
+
+    def __configure_labels(self):
+        """
+        The function configures two labels, one for displaying the time and one for displaying the song
+        name.
+        """
+        self.__lbl_time = tk.Label(master=self.__frame_main, relief=tk.RAISED, cursor='dot', font=("Arial", 50, "bold"), bg='black', fg='cyan', justify='left')
+        self.__lbl_time.grid(row=2, column=0, columnspan=1, sticky='we')
+        self.__lbl_time.place(x=50, y=420)
+
+        self.__lbl_song_name = customtkinter.CTkLabel(master=self.__frame_player, text=f"Select songs and clic Play to listen music", font=("Arial", 20, "bold"), width=55)
+        self.__lbl_song_name.grid(row=1, column=0, columnspan=6, padx=10, pady=10)
 
     def __calculate_time_left(self):
         """
@@ -60,13 +119,18 @@ class CountdownApp(customtkinter.CTk):
         seconds = (self.__initial_time - datetime.datetime.now()).total_seconds()
         m, s = divmod(seconds, 60)
         h, m = divmod(m, 60)
-        if h < 0:
-            h = 0
-            m = 0
-            s = 0
-        msg = f"  {h:02.0f}  :  {m:02.0f}  :  {s:02.0f}\nhour mins secs"
-        self.__lbl_time.configure(text = f"{msg}")
-        self.__lbl_time.after(1000, self.__calculate_time_left)
+        if not self.__time_done:
+            if h < 0:
+                h = 0
+                m = 0
+                s = 0
+                self.__time_done = True
+            msg = f"  {h:02.0f}  :  {m:02.0f}  :  {s:02.0f}\nhour mins secs"
+            self.__lbl_time.configure(text = f"{msg}")
+            self.__lbl_time.after(1000, self.__calculate_time_left)
+        elif not self.__alert_show:
+            alert('GET READY!', 'TIME DONE, GET READY FOR THE CLASS!')
+            self.__alert_show = True
     
     def __configure_date(self) -> bool:
         """
@@ -86,7 +150,8 @@ class CountdownApp(customtkinter.CTk):
             self.__initial_time = datetime.datetime.strptime(f'{actual_date} {complete_hour}:00', '%Y-%m-%d %H:%M:%S')
             alert('Datetime', f'Datetime configured: {self.__initial_time}')
             return True
-        except Exception:
+        except Exception as e:
+            print(e.with_traceback(None))
             return False
 
     def __configure_bg_image(self) -> bool:
@@ -96,20 +161,44 @@ class CountdownApp(customtkinter.CTk):
         """
         try:
             if question('Initial or End?', 'Would you like an initial image? click NO for end image'):
-                self.__image = tk.PhotoImage(file='./assets/img/background_init.png')
+                self.__image = Image.open('./assets/img/background_init.png')
             else:
-                self.__image = tk.PhotoImage(file='./assets/img/background_end.png')
+                self.__image = Image.open('./assets/img/background_end.png')
+            self.__image = ImageTk.PhotoImage(self.__image.resize((1191, 671)))
+            print('rezised')
             self.__top_banner = customtkinter.CTkLabel(master = self.__frame_main, image = self.__image, text='')
-            self.__top_banner.grid_configure(row = 0, column = 0, padx = 20, pady = 5, columnspan = 2, rowspan = 3, sticky = 'we')
+            self.__top_banner.grid_configure(row = 0, column = 0, padx = 10, pady = 5, columnspan = 1, rowspan = 1, sticky = 'we')
             return True
-        except Exception:
+        except Exception as e:
+            print(e.with_traceback(None))
             return False
 
-    def __play_loop_sound(self):
+    def __configure_icons(self):
         """
-        The function plays a looped sound in the background.
+        The function configures icons by loading and assigning image files to different variables.
         """
-        winsound.PlaySound(self.BACKGROUND_MUSIC, winsound.SND_LOOP + winsound.SND_ASYNC)
+        self.__icon_open_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/folder.png'))
+        self.__icon_play_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/play.png'))
+        self.__icon_pause_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/pause.png'))
+        self.__icon_previous_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/back.png'))
+        self.__icon_next_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/next.png'))
+        self.__icon_stop_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/stop.png'))
+
+    def __configure_date_bg_img(self) -> bool:
+        """
+        The function __configure() checks if the configuration date and background image are set, and if
+        not, recursively calls itself until they are set, then activates sound and returns True.
+        :return: a boolean value.
+        """
+        if not self.__configure_date() or not self.__configure_bg_image():
+            return self.__configure_date_bg_img()
+        return True
+
+    def __configure_sound(self):
+        """
+        The function configures the sound by activating it.
+        """
+        self.__activate_sound()
 
     def __activate_sound(self) -> bool:
         """
@@ -119,20 +208,119 @@ class CountdownApp(customtkinter.CTk):
         If the user chooses not to activate the sound, the function returns False.
         """
         if question('Activate music?', 'Would you like to activate the sound?'):
-            self.__play_loop_sound()
+            self.__open_songs()
+            self.__init_music_player()
             return True
         else: return False
+    
+    def __start_music_timer(self):
+        """
+        The function initializes a music player and calculates the time left for the music to finish.
+        """
+        self.__init_music_player()
+        self.__calculate_time_left()
 
-    def __configure(self) -> bool:
+    #! #### MUSIC PLAYER #### !#
+    def __prev_song(self):
         """
-        The function __configure() checks if the configuration date and background image are set, and if
-        not, recursively calls itself until they are set, then activates sound and returns True.
-        :return: a boolean value.
+        The function __prev_song decreases the value of __actual_position by 1 if it is greater than 0,
+        otherwise it sets it to 0, and then calls the __lbl_update_song method after 1 second.
         """
-        if not self.__configure_date() or not self.__configure_bg_image():
-            return self.__configure()
-        self.__activate_sound()
-        return True
+        if self.__actual_position > 0:
+            self.__actual_position -= 1
+        else:
+            self.__actual_position = 0
+        self.after(1000, self.__start_music_timer)
+    
+    def __next_song(self):
+        """
+        The function increments the actual position of the song and updates the label to display the
+        next song.
+        """
+        if self.__actual_position < len(self.__songs) - 1:
+            self.__actual_position += 1
+        else:
+            self.__actual_position = 0
+        self.after(1000, self.__start_music_timer)
+    
+    def __stop_song(self):
+        """
+        The function stops the currently playing song and cancels any scheduled updates to the song
+        label.
+        """
+        self.__is_stopped = True
+        self.__is_playing = False
+        mixer.music.stop()
+        self.__actual_song_name = 'Nothing `cause it`s stopped!'
+        if self.__lbl_update_song:
+            self.after_cancel(self.__lbl_update_song)
+            self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
+    
+    def __pause_song(self):
+        """
+        The function toggles between pausing and unpausing a song using the mixer.music module in
+        Python.
+        """
+        if not self.__is_stopped and self.__lbl_update_song:
+            if self.__is_paused:
+                mixer.music.unpause()
+                self.__actual_song_name = self.__actual_song_name.split(' | ')[0]
+            else: 
+                mixer.music.pause()
+                self.__actual_song_name += ' | (but it`s paused!)'
+            self.__is_paused = not self.__is_paused
+            self.after_cancel(self.__lbl_update_song)
+            self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
+
+    def __init_music_player(self):
+        """
+        The `__init_music_player` function initializes the music player by loading and playing the first
+        song in the list of songs.
+        """
+        if self.__songs:
+            mixer.music.load(self.__songs[self.__actual_position])
+            mixer.music.play()
+            self.__play_songs()
+            self.__is_stopped = False
+            self.__is_playing = True
+
+    def __play_songs(self):
+        """
+        The function plays songs from a list and updates the song name label accordingly.
+        """
+        if self.__songs:
+            amount_songs = len(self.__songs)
+            self.__actual_song = self.__songs[self.__actual_position]
+            self.__actual_song_name = self.__actual_song.split('/')[-1]
+            time = mixer.music.get_pos()
+            x = int(time*0.001)
+            mixer.music.set_volume(1)
+            audio = mutagen.File(self.__songs[self.__actual_position])
+            log = audio.info.length
+            minutes, seconds = divmod(log, 60)
+            minutes, seconds = int(minutes), int(seconds)
+            tt = minutes*60 + seconds
+            self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
+            self.__lbl_update_song = self.after(1000, self.__play_songs)
+
+            if x == tt:
+                self.after_cancel(self.__lbl_update_song)
+                self.__lbl_song_name.configure(text = '')
+                if self.__actual_position != amount_songs:
+                    self.__actual_position += 1
+                    self.after(1000, self.__play_songs)
+                    mixer.music.play()
+                elif self.__actual_position == amount_songs:
+                    self.__actual_position = 0
+
+    def __open_songs(self):
+        """
+        The function opens a file dialog to select multiple songs with the file extensions .mp3 or .wav.
+        """
+        self.__songs = filedialog.askopenfilenames(
+            initialdir=self.BACKGROUND_MUSIC, title='Select songs to open',
+            filetypes=(('MP3 Files', '*.mp3'), ('WAV Files', '*.wav'), ('OGG Files', '*.ogg'))
+        )
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
