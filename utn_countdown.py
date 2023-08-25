@@ -165,7 +165,6 @@ class CountdownApp(customtkinter.CTk):
             else:
                 self.__image = Image.open('./assets/img/background_end.png')
             self.__image = ImageTk.PhotoImage(self.__image.resize((1191, 671)))
-            print('rezised')
             self.__top_banner = customtkinter.CTkLabel(master = self.__frame_main, image = self.__image, text='')
             self.__top_banner.grid_configure(row = 0, column = 0, padx = 10, pady = 5, columnspan = 1, rowspan = 1, sticky = 'we')
             return True
