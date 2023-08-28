@@ -17,7 +17,6 @@ import datetime
 import re
 import tkinter as tk
 import warnings
-import winsound
 from tkinter import Button, filedialog
 from tkinter.messagebox import askyesno as question
 from tkinter.messagebox import showinfo as alert
@@ -81,23 +80,23 @@ class CountdownApp(customtkinter.CTk):
         The function `__configure_buttons` creates and configures buttons for a music player interface.
         """
         self.__configure_icons()
-        self.__btn_open_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_open_logo, text='', command=self.__open_songs)
-        self.__btn_open_song.grid(row=0, column = 0, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_open_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_open_logo, text='', command=self.__open_songs)
+        self.__btn_open_song.grid(row=0, column = 0, padx=5, pady=5)
 
-        self.__btn_prev_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_previous_logo, text='', command=self.__prev_song)
-        self.__btn_prev_song.grid(row=0, column = 1, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_prev_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_previous_logo, text='', command=self.__prev_song)
+        self.__btn_prev_song.grid(row=0, column = 1, padx=5, pady=5)
 
-        self.__btn_play_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_play_logo, text='', command=self.__init_music_player)
-        self.__btn_play_song.grid(row=0, column = 2, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_play_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_play_logo, text='', command=self.__init_music_player)
+        self.__btn_play_song.grid(row=0, column = 2, padx=5, pady=5)
 
-        self.__btn_pause_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_pause_logo, text='', command=self.__pause_song)
-        self.__btn_pause_song.grid(row=0, column = 3, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_pause_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_pause_logo, text='', command=self.__pause_song)
+        self.__btn_pause_song.grid(row=0, column = 3, padx=5, pady=5)
 
-        self.__btn_stop_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_stop_logo, text='', command=self.__stop_song)
-        self.__btn_stop_song.grid(row=0, column = 4, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_stop_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_stop_logo, text='', command=self.__stop_song)
+        self.__btn_stop_song.grid(row=0, column = 4, padx=5, pady=5)
 
-        self.__btn_next_song = customtkinter.CTkButton(master=self.__frame_player, image=self.__icon_next_logo, text='', command=self.__next_song)
-        self.__btn_next_song.grid(row=0, column = 5, padx=10, pady=5, columnspan=1, sticky="ew")
+        self.__btn_next_song = customtkinter.CTkButton(master=self.__frame_player, width = 120, image=self.__icon_next_logo, text='', command=self.__next_song)
+        self.__btn_next_song.grid(row=0, column = 5, padx=5, pady=5)
 
     def __configure_labels(self):
         """
