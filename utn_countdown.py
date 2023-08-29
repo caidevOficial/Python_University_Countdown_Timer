@@ -159,7 +159,7 @@ class CountdownApp(customtkinter.CTk):
         :return: a boolean value.
         """
         try:
-            if question('Initial or End?', 'Would you like an initial image? click NO for end image'):
+            if question('Initial or End?', 'Would you like an initial [Yes] or end [No] image?'):
                 self.__image = Image.open('./assets/img/background_init.png')
             else:
                 self.__image = Image.open('./assets/img/background_end.png')
@@ -228,7 +228,7 @@ class CountdownApp(customtkinter.CTk):
             self.__actual_position -= 1
         else:
             self.__actual_position = 0
-        self.after(1000, self.__start_music_timer)
+        self.after(100, self.__start_music_timer)
     
     def __next_song(self):
         """
@@ -239,7 +239,7 @@ class CountdownApp(customtkinter.CTk):
             self.__actual_position += 1
         else:
             self.__actual_position = 0
-        self.after(1000, self.__start_music_timer)
+        self.after(100, self.__start_music_timer)
     
     def __stop_song(self):
         """
@@ -291,25 +291,26 @@ class CountdownApp(customtkinter.CTk):
             self.__actual_song = self.__songs[self.__actual_position]
             self.__actual_song_name = self.__actual_song.split('/')[-1]
             time = mixer.music.get_pos()
-            x = int(time*0.001)
+            x = int(time * 0.001)
             mixer.music.set_volume(1)
             audio = mutagen.File(self.__songs[self.__actual_position])
             log = audio.info.length
             minutes, seconds = divmod(log, 60)
             minutes, seconds = int(minutes), int(seconds)
-            tt = minutes*60 + seconds
+            tt = minutes * 60 + seconds
             self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
-            self.__lbl_update_song = self.after(1000, self.__play_songs)
+            self.__lbl_update_song = self.after(100, self.__play_songs)
 
             if x == tt:
                 self.after_cancel(self.__lbl_update_song)
                 self.__lbl_song_name.configure(text = '')
-                if self.__actual_position != amount_songs:
+                if self.__actual_position < amount_songs -1 :
                     self.__actual_position += 1
-                    self.after(1000, self.__play_songs)
+                    self.after(500, self.__play_songs)
                     mixer.music.play()
-                elif self.__actual_position == amount_songs:
-                    self.__actual_position = 0
+                else: self.__actual_position = 0
+                self.after(500, self.__init_music_player)
+                mixer.music.play()
 
     def __open_songs(self):
         """
