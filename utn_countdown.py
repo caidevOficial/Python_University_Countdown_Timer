@@ -194,7 +194,6 @@ class CountdownApp(customtkinter.CTk):
         self.__icon_next_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/next.png'))
         self.__icon_stop_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/stop.png'))
         self.__configure_shuffle_button_icon('yellow')
-        # self.__icon_shuffle_logo = ImageTk.PhotoImage(Image.open('./assets/icons/yellow/shuffle.png'))
 
     def __configure_date_bg_img(self) -> bool:
         """
@@ -235,24 +234,32 @@ class CountdownApp(customtkinter.CTk):
     #! #### MUSIC PLAYER #### !#
     def __prev_song(self) -> None:
         """
-        The function __prev_song decreases the value of __actual_position by 1 if it is greater than 0,
-        otherwise it sets it to 0, and then calls the __lbl_update_song method after 1 second.
+        The function __prev_song() is used to go to the previous song in a music player, either by
+        selecting a random song or by decrementing the actual position if random mode is not activated.
         """
-        if self.__actual_position > 0:
-            self.__actual_position -= 1
-        else:
-            self.__actual_position = 0
+        match self.__is_random_activated:
+            case True:
+                self.__set_random_song()
+            case False:
+                if self.__actual_position > 0:
+                    self.__actual_position -= 1
+                else:
+                    self.__actual_position = 0
         self.after(100, self.__start_music_timer)
     
     def __next_song(self) -> None:
         """
-        The function increments the actual position of the song and updates the label to display the
-        next song.
+        The function `__next_song` selects the next song to play based on whether random mode is
+        activated or not.
         """
-        if self.__actual_position < len(self.__songs) - 1:
-            self.__actual_position += 1
-        else:
-            self.__actual_position = 0
+        match self.__is_random_activated:
+            case True:
+                self.__set_random_song()
+            case False:
+                if self.__actual_position < len(self.__songs) - 1:
+                    self.__actual_position += 1
+                else:
+                    self.__actual_position = 0
         self.after(100, self.__start_music_timer)
     
     def __stop_song(self) -> None:
