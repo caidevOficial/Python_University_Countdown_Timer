@@ -42,7 +42,6 @@ class CountdownApp(customtkinter.CTk):
         """
         super().__init__()
         mixer.init(frequency=44100)
-
         self.title(f"UTN FRA - countdown")
         self.minsize(320, 250)
         self.BACKGROUND_MUSIC = '.'
@@ -56,14 +55,12 @@ class CountdownApp(customtkinter.CTk):
         self.__time_done = False
         self.__alert_show = False
         self.__songs = list()
-        
         self.__configure_frames()
         self.__configure_date_bg_img()
         self.__configure_labels()
         self.__configure_buttons()
         self.__configure_sound()
         self.__lbl_update_song = ''
-
         self.__calculate_time_left()
 
     #! #### CONFIGURATIONS #### !#
@@ -132,9 +129,9 @@ class CountdownApp(customtkinter.CTk):
             msg = f"  {h:02.0f}  :  {m:02.0f}  :  {s:02.0f}\nhour mins secs"
             self.__lbl_time.configure(text = f"{msg}")
             self.__lbl_time.after(1000, self.__calculate_time_left)
-        elif not self.__alert_show:
-            alert('GET READY!', 'TIME DONE, GET READY FOR THE CLASS!')
+        elif not self.__alert_show and self.__time_done:
             self.__alert_show = True
+            alert('GET READY!', 'TIME DONE, GET READY FOR THE CLASS!')
     
     def __configure_date(self) -> bool:
         """
@@ -388,5 +385,6 @@ class CountdownApp(customtkinter.CTk):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
+    #root = customtkinter.CTk()
     app = CountdownApp()
     app.mainloop()
