@@ -161,11 +161,17 @@ class CountdownApp(customtkinter.CTk):
         :return: a boolean value.
         """
         try:
-            if question('Initial or End?', 'Would you like an initial [Yes] or end [No] image?'):
-                self.__image = Image.open('./assets/img/background_init.png')
-            else:
-                self.__image = Image.open('./assets/img/background_end.png')
-            self.__image = ImageTk.PhotoImage(self.__image.resize((1191, 671)))
+            img_path = './assets/img/background_init.png'
+            if question('Initial image?', 'Would you like an initial image?'):
+                img_path = './assets/img/background_init.png'
+                #self.__image = Image.open('./assets/img/background_init.png')
+            elif question('Back image?', 'Would you like a back image?'):
+                img_path = './assets/img/background_back.png'
+            elif question('End image?', 'Would you like a end image?'):
+                img_path = './assets/img/background_end.png'
+            
+            self.__image = ImageTk.PhotoImage(
+                Image.open(img_path).resize((1191, 671)))
             self.__top_banner = customtkinter.CTkLabel(master = self.__frame_main, image = self.__image, text='')
             self.__top_banner.grid_configure(row = 0, column = 0, padx = 10, pady = 5, columnspan = 1, rowspan = 1, sticky = 'we')
             return True
