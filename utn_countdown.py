@@ -305,7 +305,7 @@ class CountdownApp(customtkinter.CTk):
             case 'on':
                 if not self.__is_random_activated:
                     self.__is_random_activated = True
-                    self.__update_shuffle_icon('blue')
+                    self.__update_shuffle_icon('gray')
                 self.__set_random_song()
             case 'off':
                 if self.__is_random_activated:
@@ -391,6 +391,5 @@ class CountdownApp(customtkinter.CTk):
 
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
-    #root = customtkinter.CTk()
     app = CountdownApp()
     app.mainloop()
