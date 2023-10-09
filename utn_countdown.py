@@ -19,8 +19,9 @@ import random as rd
 import tkinter as tk
 import warnings
 from tkinter import Button, filedialog
-from tkinter.messagebox import askyesno as question
-from tkinter.messagebox import showinfo as alert
+from tkinter.messagebox import (
+    askyesno as question, showinfo as alert
+)
 from tkinter.simpledialog import askstring as prompt
 
 import customtkinter
