@@ -179,10 +179,22 @@ class CountdownApp(customtkinter.CTk):
             print(e.with_traceback(None))
             return False
 
-    def __configure_shuffle_button_icon(self, color: str = 'yellow'):
+    def __configure_shuffle_button_icon(self, color: str = 'yellow') -> None:
+        """
+        The function configures the icon for a shuffle button with a specified color.
+        
+        :param color: The "color" parameter is a string that specifies the color of the shuffle button
+        icon. It is set to 'yellow' by default, defaults to yellow
+        """
         self.__icon_shuffle_logo = ImageTk.PhotoImage(Image.open(f'./assets/icons/{color}/shuffle.png'))
 
-    def __update_shuffle_icon(self, color: str = 'yellow'):
+    def __update_shuffle_icon(self, color: str = 'yellow') -> None:
+        """
+        This function updates the shuffle icon and button color in a music player interface.
+        
+        :param color: The color parameter is a string that represents the color of the shuffle icon. It
+        is set to 'yellow' by default, defaults to yellow
+        """
         self.__configure_shuffle_button_icon(color)
         self.__btn_shuffle_song.configure(image=self.__icon_shuffle_logo)
 
@@ -294,7 +306,7 @@ class CountdownApp(customtkinter.CTk):
             self.after_cancel(self.__lbl_update_song)
             self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
     
-    def __set_on_off_random(self, on_off: str):
+    def __set_on_off_random(self, on_off: str) -> None:
         """
         The function sets a boolean variable to True or False based on the input string 'on' or 'off'.
         
@@ -312,7 +324,7 @@ class CountdownApp(customtkinter.CTk):
                     self.__is_random_activated = False
                     self.__update_shuffle_icon('yellow')
     
-    def __set_random_song(self):
+    def __set_random_song(self) -> None:
         """
         The function sets the actual position of a random song in a list of songs.
         """
@@ -320,14 +332,14 @@ class CountdownApp(customtkinter.CTk):
         random_song = rd.choice(list(range(amount_songs)))
         self.__actual_position = random_song
     
-    def __play_random_mode(self):
+    def __play_random_mode(self) -> None:
         """
         The function sets the random mode of a music player to "on" and initializes the music player.
         """
         self.__set_on_off_random('on')
         self.__init_music_player()
 
-    def __activate_random_mode(self):
+    def __activate_random_mode(self) -> None:
         """
         The function activates or deactivates the random mode based on its current state.
         """
