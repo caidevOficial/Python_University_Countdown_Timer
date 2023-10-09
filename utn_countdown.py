@@ -146,7 +146,7 @@ class CountdownApp(customtkinter.CTk):
             actual_date = datetime.datetime.today().date()
             while not complete_hour:
                 complete_hour = prompt('Activate', f'Enter Hour in format: HH:MM for date {actual_date}')
-                time_pattern = '[0-2]{1}[0-9]{1}\:[0-5]{1}[0-9]{1}'
+                time_pattern = r'[0-2]{1}[0-9]{1}:[0-5]{1}[0-9]{1}'
                 if not re.match(f'^{time_pattern}$', complete_hour):
                     complete_hour = None
             self.__initial_time = datetime.datetime.strptime(f'{actual_date} {complete_hour}:00', '%Y-%m-%d %H:%M:%S')
@@ -283,20 +283,21 @@ class CountdownApp(customtkinter.CTk):
         The function stops the currently playing song and cancels any scheduled updates to the song
         label.
         """
-        self.__is_stopped = True
-        self.__is_playing = False
-        mixer.music.stop()
-        self.__actual_song_name = 'Nothing `cause it`s stopped!'
-        if self.__lbl_update_song:
-            self.after_cancel(self.__lbl_update_song)
-            self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
+        if self.__is_playing:
+            self.__is_stopped = True
+            self.__is_playing = False
+            mixer.music.stop()
+            self.__actual_song_name = 'Nothing `cause it`s stopped!'
+            if self.__lbl_update_song:
+                self.after_cancel(self.__lbl_update_song)
+                self.__lbl_song_name.configure(text = f'🎧Now Playing: {self.__actual_song_name}')
     
     def __pause_song(self) -> None:
         """
         The function toggles between pausing and unpausing a song using the mixer.music module in
         Python.
         """
-        if not self.__is_stopped and self.__lbl_update_song:
+        if not self.__is_stopped and self.__is_playing and self.__lbl_update_song:
             if self.__is_paused:
                 mixer.music.unpause()
                 self.__actual_song_name = self.__actual_song_name.split(' | ')[0]
@@ -354,11 +355,11 @@ class CountdownApp(customtkinter.CTk):
         song in the list of songs.
         """
         if self.__songs:
+            self.__is_stopped = False
+            self.__is_playing = True
             mixer.music.load(self.__songs[self.__actual_position])
             mixer.music.play()
             self.__play_songs()
-            self.__is_stopped = False
-            self.__is_playing = True
 
     def __play_songs(self) -> None:
         """
