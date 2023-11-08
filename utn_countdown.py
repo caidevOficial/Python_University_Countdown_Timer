@@ -55,6 +55,7 @@ class CountdownApp(customtkinter.CTk):
         self.__is_random_activated = False
         self.__time_done = False
         self.__alert_show = False
+        self.__final_snd_path = './assets/sound/closs.mp3'
         self.__songs = list()
         self.__configure_frames()
         self.__configure_date_bg_img()
@@ -127,6 +128,7 @@ class CountdownApp(customtkinter.CTk):
                 m = 0
                 s = 0
                 self.__time_done = True
+                self.__play_closs_voice()
             msg = f"  {h:02.0f}  :  {m:02.0f}  :  {s:02.0f}\nhour mins secs"
             self.__lbl_time.configure(text = f"{msg}")
             self.__lbl_time.after(1000, self.__calculate_time_left)
@@ -354,7 +356,7 @@ class CountdownApp(customtkinter.CTk):
         The `__init_music_player` function initializes the music player by loading and playing the first
         song in the list of songs.
         """
-        if self.__songs:
+        if self.__songs and not self.__time_done:
             self.__is_stopped = False
             self.__is_playing = True
             mixer.music.load(self.__songs[self.__actual_position])
@@ -393,6 +395,14 @@ class CountdownApp(customtkinter.CTk):
                     else: self.__actual_position = 0
                 self.after(500, self.__init_music_player)
                 mixer.music.play()
+    
+    def __play_closs_voice(self) -> None:
+        """
+        The function stops all the playing music and plays the sound of Mariano Closs.
+        """
+        self.__stop_song()
+        mixer.music.load(self.__final_snd_path)
+        mixer.music.play()
 
     def __open_songs(self) -> None:
         """
