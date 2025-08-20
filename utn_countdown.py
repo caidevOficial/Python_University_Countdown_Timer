@@ -18,7 +18,7 @@ import re
 import random as rd
 import tkinter as tk
 import warnings
-from tkinter import Button, filedialog
+from tkinter import filedialog
 from tkinter.messagebox import askyesno as question
 from tkinter.messagebox import showinfo as alert
 from tkinter.simpledialog import askstring as prompt
@@ -126,6 +126,7 @@ class CountdownApp(customtkinter.CTk):
                 m = 0
                 s = 0
                 self.__time_done = True
+                self.__play_music('./assets/mariano_closs.wav')
             msg = f"  {h:02.0f}  :  {m:02.0f}  :  {s:02.0f}\nhour mins secs"
             self.__lbl_time.configure(text = f"{msg}")
             self.__lbl_time.after(1000, self.__calculate_time_left)
@@ -145,7 +146,7 @@ class CountdownApp(customtkinter.CTk):
             actual_date = datetime.datetime.today().date()
             while not complete_hour:
                 complete_hour = prompt('Activate', f'Enter Hour in format: HH:MM for date {actual_date}')
-                time_pattern = '[0-2]{1}[0-9]{1}\:[0-5]{1}[0-9]{1}'
+                time_pattern = '[0-2]{1}[0-9]{1}:[0-5]{1}[0-9]{1}'
                 if not re.match(f'^{time_pattern}$', complete_hour):
                     complete_hour = None
             self.__initial_time = datetime.datetime.strptime(f'{actual_date} {complete_hour}:00', '%Y-%m-%d %H:%M:%S')
@@ -207,6 +208,20 @@ class CountdownApp(customtkinter.CTk):
         if not self.__configure_date() or not self.__configure_bg_image():
             return self.__configure_date_bg_img()
         return True
+
+    def __play_music(self, song_path: str):
+        """
+        The function `__play_music` stops any currently playing music, loads a new song from the
+        specified path, and plays it.
+        
+        :param song_path: The `song_path` parameter in the `__play_music` method is a string that
+        represents the file path to the music file that you want to play. This parameter is used to load
+        and play the specified music file using the `mixer.music` module
+        :type song_path: str
+        """
+        mixer.music.stop()
+        mixer.music.load(song_path)
+        mixer.music.play()
 
     def __configure_sound(self) -> None:
         """
@@ -357,7 +372,7 @@ class CountdownApp(customtkinter.CTk):
             self.__actual_song_name = self.__actual_song.split('/')[-1]
             time = mixer.music.get_pos()
             x = int(time * 0.001)
-            mixer.music.set_volume(1)
+            mixer.music.set_volume(0.5)
             audio = mutagen.File(self.__songs[self.__actual_position])
             log = audio.info.length
             minutes, seconds = divmod(log, 60)
